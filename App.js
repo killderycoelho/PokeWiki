@@ -9,10 +9,12 @@ import {
   FlatList,
   StyleSheet,
   Modal,
+  BackHandler,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const logo = require('./assets/images/PokeWiki.png');
+const exit = require('./assets/images/exit.png');
 
 export default class Index extends React.Component {
   constructor(props) {
@@ -37,25 +39,18 @@ export default class Index extends React.Component {
   }
 
   setModalVisible(visible, id) {
-    this.setState({ pokemon: [], species: [] });
+    this.setState({ pokemon: [], loading: true });
 
     axios
       .get(`https://pokeapi.co/api/v2/pokemon/` + id)
       .then(res => {
-        return (this.setState({ pokemon: res.data }))
+        return (this.setState({ pokemon: res.data, loading: false }))
       })
       .catch(err => this.setState({ loading: false }));
 
     this.setState({ modalVisible: visible });
-  }
 
-  // getAbilities(abilities) {
-  //   abilities.map((item) => {
-  //     return (
-  //       <View><Text>{item.ability.name}</Text></View>
-  //     )
-  //   })
-  // }
+  }
 
   render() {
     const { pokemon } = this.state
@@ -64,7 +59,14 @@ export default class Index extends React.Component {
         <View style={styles.header}>
           <Image style={styles.logo} source={logo} />
         </View>
+        <TouchableOpacity style={{ marginTop: -50, marginRight: 5, justifyContent: 'flex-end', alignItems: 'flex-end' }}
+          onPress={() => {
+            BackHandler.exitApp();
+          }}>
+          <Image style={{ width: 30, height: 40 }} source={exit} />
+        </TouchableOpacity>
         <FlatList
+          style={{ marginTop: 20 }}
           data={this.state.data}
           contentContainerStyle={{ paddingBottom: 80 }}
           numColumns={3}
@@ -76,49 +78,29 @@ export default class Index extends React.Component {
                 <Text style={styles.title}>{item.name}</Text>
               </View>
             </TouchableOpacity>
+
           )}
         />
-        {pokemon.length != 0 ?
-          <Modal
-            animationType="slide"
-            transparent={false}
-            visible={this.state.modalVisible}
-          >
-            <View>
-              <View style={{ height: 130, backgroundColor: 'skyblue' }}>
-                <TouchableOpacity style={{ marginTop:5, marginRight: 5, justifyContent: 'flex-end', alignItems: 'flex-end' }}
-                  onPress={() => {
-                    this.setModalVisible(!this.state.modalVisible);
-                  }}>
-                  <Icon name="close" size={30} color="#000" />
-                </TouchableOpacity>
-              </View>
-              <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: -70 }}>
-                <Image style={{ width: 180, height: 160 }} source={{ uri: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + this.state.pokemon.id + '.png' }} />
-              </View>
-              <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={styles.text}>{this.state.pokemon.name}</Text>
-              </View>
-              <View>
-                <Text style={styles.text}>Order: #{this.state.pokemon.order}</Text>
-              </View>
-              <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 40 }}>
-                <Text style={styles.text}>Powers:</Text>                
-              </View>              
-              <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-                <Text style={styles.powers}>{pokemon.abilities[0].ability.name}</Text> 
-                <Text style={styles.powers}>{pokemon.abilities[1].ability.name}</Text>
-              </View>
-              {/* <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 40 }}>
-                <Text style={styles.text}>Types:</Text>                
-              </View>              
-              <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-                <Text style={styles.powers}>{pokemon.types[0].type.name}</Text> 
-                <Text style={styles.powers}>{pokemon.types[1].type.name}</Text>
-              </View> */}
-            </View>
-          </Modal>
-          : null}
+        <Modal
+          animationType="slide"
+          transparent={false}
+          visible={this.state.modalVisible}
+          onRequestClose={() => {
+            Alert.alert('Modal has been closed.');
+          }}>
+          <View style={{marginTop: 22}}>
+              <TouchableOpacity style={{justifyContent: 'flex-end', alignItems: 'flex-end'}}
+                onPress={() => {
+                  this.setModalVisible(!this.state.modalVisible);
+                }}>
+                <Icon name="close" size={30} color="#900" />
+              </TouchableOpacity>
+              <Image style={{ width: 180, height: 160 }} source={{ uri: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + this.state.pokemon.id + '.png' }} />
+              <Text>{this.state.pokemon.name}</Text>    
+              <Text>{this.state.pokemon.height}</Text> 
+              <Text>{this.state.pokemon.weight}</Text> 
+          </View>      
+        </Modal>
       </SafeAreaView>
     );
   }
@@ -151,15 +133,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: -12,
   },
-  powers: {
-    padding: 5, 
-    margin: 10, 
-    backgroundColor: 'skyblue', 
-    borderRadius: 10
-  },
-  text: {
-    fontSize: 16, 
-    fontWeight: 'bold' 
-  }
-
 });
